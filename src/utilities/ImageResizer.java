@@ -1,30 +1,32 @@
 package utilities;
 
 import java.awt.AlphaComposite;
+import java.awt.Desktop;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
 public class ImageResizer {
     
-    //private static final int WIDTH = 436;
-    //private static final int HEIGHT = 436;
-    private static final int WIDTH = 271;
-    private static final int HEIGHT = 377;
+    private static final int WIDTH = 436;
+    private static final int HEIGHT = 436;
     
-    private static final String ENDING = "";
+    private static final String ENDING = "_edit";
     
     private static final boolean DELETE_ORIGINAL_AFTER_RESIZE = true;
     private static final boolean RESIZE_SMOOTH = true;
     
+        
     public static void main(String[] args) throws IOException {
-        File dir = new File("C:\\Users\\Andrea\\Desktop\\Nuova cartella");
+        File dir = new File("C:\\Users\\Andrea\\Desktop\\1");
         for(File cover : dir.listFiles()){
             if(cover.isFile()){
                 Image original = ImageIO.read(cover);
@@ -35,7 +37,7 @@ public class ImageResizer {
                 }
                 
                 if(DELETE_ORIGINAL_AFTER_RESIZE){
-                    cover.delete();
+                    moveToTrash(cover);
                 }
             }
         }
@@ -64,5 +66,30 @@ public class ImageResizer {
         graphics2D.drawImage(resized.getImage(), 0, 0, width, height, null);
         graphics2D.dispose();
         return bufferedImage;
+    }
+    
+
+    public static void moveToTrash(File f) throws IOException {
+        String path = f.getAbsolutePath();
+        path = path.replace("\\", "\\\\");
+        
+        String command = "powershell.exe Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile('" + path + "','OnlyErrorDialogs','SendToRecycleBin')";
+        Process powerShellProcess = Runtime.getRuntime().exec(command);
+        powerShellProcess.getOutputStream().close();
+        
+        String line;
+        //System.out.println("Standard Output:");
+        BufferedReader stdout = new BufferedReader(new InputStreamReader(powerShellProcess.getInputStream()));
+        while ((line = stdout.readLine()) != null) {
+            //System.out.println(line);
+        }
+        stdout.close();
+        //System.out.println("Standard Error:");
+        BufferedReader stderr = new BufferedReader(new InputStreamReader(powerShellProcess.getErrorStream()));
+        while ((line = stderr.readLine()) != null) {
+            //System.out.println(line);
+        }
+        stderr.close();
+        //System.out.println("Done");
     }
 }
